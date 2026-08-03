@@ -54,6 +54,7 @@ def get_pipeline() -> FourAlgorithmPipeline:
 
 # Request Schema
 class PatientInput(BaseModel):
+    patient_name: Optional[str] = Field("Eleanor Vance", example="Eleanor Vance")
     age: int = Field(..., example=75)
     gender: str = Field("Female", example="Female")
     admission_type: str = Field("Emergency", example="Emergency")

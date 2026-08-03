@@ -73,6 +73,7 @@ export default function App() {
 
   // Form State
   const [formData, setFormData] = useState({
+    patient_name: 'Eleanor Vance',
     age: 72,
     gender: 'Female',
     admission_type: 'Emergency',
@@ -152,6 +153,7 @@ export default function App() {
 
   const handlePresetSelect = (sample) => {
     setFormData({
+      patient_name: sample.name || '',
       age: sample.age,
       gender: sample.gender,
       admission_type: sample.admission_type,
@@ -249,6 +251,7 @@ export default function App() {
 HEALTHGUARD AI - CLINICAL PATIENT READMISSION ASSESSMENT REPORT
 ------------------------------------------------------------------
 Timestamp: ${new Date().toLocaleString()}
+Patient Name: ${formData.patient_name || 'Anonymous Patient'}
 Patient Age: ${formData.age} | Gender: ${formData.gender} | Admission: ${formData.admission_type}
 Diagnosis Code: ${formData.primary_diagnosis_code} | Hospital Days: ${formData.time_in_hospital}
 
@@ -515,6 +518,18 @@ RECOMMENDATION: ${dynamicEnsemble?.recommendation || assessmentResult.ensemble_r
                     <User className="w-4 h-4 text-cyan-400" /> 1. Patient Demographics
                   </div>
                   
+                  <div>
+                    <label className="block text-base font-semibold text-slate-200 mb-2">Patient Full Name</label>
+                    <input
+                      type="text"
+                      name="patient_name"
+                      placeholder="e.g. Eleanor Vance"
+                      value={formData.patient_name}
+                      onChange={handleFormChange}
+                      className="w-full bg-slate-900 border-2 border-slate-800 rounded-2xl px-4 py-3.5 text-base text-slate-100 placeholder-slate-500 focus:border-cyan-500 focus:outline-none transition-colors font-sans"
+                    />
+                  </div>
+
                   <div className="grid grid-cols-2 gap-5">
                     <div>
                       <label className="block text-base font-semibold text-slate-200 mb-2">Age (Years)</label>
@@ -836,6 +851,11 @@ RECOMMENDATION: ${dynamicEnsemble?.recommendation || assessmentResult.ensemble_r
                               {dynamicEnsemble?.tier || assessmentResult.ensemble_result.risk_tier}
                             </span>
                           </div>
+                          {formData.patient_name && (
+                            <div className="text-sm font-semibold text-cyan-400 mt-1 flex items-center gap-1">
+                              <User className="w-3.5 h-3.5" /> {formData.patient_name}
+                            </div>
+                          )}
                         </div>
 
                       </div>
@@ -1310,8 +1330,14 @@ RECOMMENDATION: ${dynamicEnsemble?.recommendation || assessmentResult.ensemble_r
                       .map((item, i) => (
                         <tr key={i} className="hover:bg-slate-900/60">
                           <td className="p-5 text-slate-400">{item.timestamp ? new Date(item.timestamp).toLocaleTimeString() : '--'}</td>
-                          <td className="p-5 font-sans text-slate-100 font-semibold">
-                            {item.patient_input.age}y/o {item.patient_input.gender} ({item.patient_input.admission_type})
+                          <td className="p-5 font-sans text-slate-100">
+                            <div className="font-bold text-slate-100 flex items-center gap-1.5">
+                              <User className="w-4 h-4 text-cyan-400 inline" />
+                              {item.patient_input?.patient_name || 'Anonymous Patient'}
+                            </div>
+                            <div className="text-xs text-slate-400 mt-0.5 font-mono">
+                              {item.patient_input.age}y/o {item.patient_input.gender} ({item.patient_input.admission_type})
+                            </div>
                           </td>
                           <td className="p-5 text-purple-300">
                             {item.pipeline_stages?.stage1_kmeans?.persona?.name || `Segment #${item.pipeline_stages?.stage1_kmeans?.cluster_id}`}

@@ -72,7 +72,7 @@ class FourAlgorithmPipeline:
             
         # Target identification
         target_col = 'readmitted_within_30days'
-        drop_cols = ['patient_id', 'days_to_readmission', target_col]
+        drop_cols = ['patient_id', 'patient_name', 'name', 'days_to_readmission', target_col]
         
         X_raw = df_clean.drop(columns=[c for c in drop_cols if c in df_clean.columns])
         y = df_clean[target_col] if target_col in df_clean.columns else None
