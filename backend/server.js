@@ -19,6 +19,7 @@ const SAMPLE_PATIENTS = [
   {
     id: "P-1001",
     name: "Eleanor Vance (High Risk)",
+    patient_name: "Eleanor Vance (High Risk)",
     age: 78,
     gender: "Female",
     admission_type: "Emergency",
@@ -37,6 +38,7 @@ const SAMPLE_PATIENTS = [
   {
     id: "P-1002",
     name: "Marcus Brody (Low Risk)",
+    patient_name: "Marcus Brody (Low Risk)",
     age: 44,
     gender: "Male",
     admission_type: "Elective",
@@ -55,6 +57,7 @@ const SAMPLE_PATIENTS = [
   {
     id: "P-1003",
     name: "Sofia Rodriguez (Moderate Risk)",
+    patient_name: "Sofia Rodriguez (Moderate Risk)",
     age: 63,
     gender: "Female",
     admission_type: "Urgent",
@@ -73,6 +76,7 @@ const SAMPLE_PATIENTS = [
   {
     id: "P-1004",
     name: "David Kim (Acute Emergency)",
+    patient_name: "David Kim (Acute Emergency)",
     age: 71,
     gender: "Male",
     admission_type: "Emergency",
@@ -92,7 +96,9 @@ const SAMPLE_PATIENTS = [
 
 // Fallback Javascript ML Pipeline Engine (Runs if Python service is initializing)
 function executeFallbackPipeline(patientInput, weightLogistic = 0.35, weightXgb = 0.65) {
-  const { age, time_in_hospital, num_prior_admissions, num_lab_procedures, num_medications, has_comorbidity, admission_type } = patientInput;
+  const pName = patientInput.patient_name || patientInput.name || "Anonymous Patient";
+  const normalizedInput = { ...patientInput, patient_name: pName, name: pName };
+  const { age, time_in_hospital, num_prior_admissions, num_lab_procedures, num_medications, has_comorbidity, admission_type } = normalizedInput;
   
   // 1. K-Means Persona Scoring
   let clusterId = 3;
@@ -179,7 +185,7 @@ function executeFallbackPipeline(patientInput, weightLogistic = 0.35, weightXgb 
   }
 
   return {
-    patient_input: patientInput,
+    patient_input: normalizedInput,
     engine_mode: "fallback_js",
     pipeline_stages: {
       stage1_kmeans: {

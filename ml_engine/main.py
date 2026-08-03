@@ -55,6 +55,7 @@ def get_pipeline() -> FourAlgorithmPipeline:
 # Request Schema
 class PatientInput(BaseModel):
     patient_name: Optional[str] = Field("Eleanor Vance", example="Eleanor Vance")
+    name: Optional[str] = Field("Eleanor Vance", example="Eleanor Vance")
     age: int = Field(..., example=75)
     gender: str = Field("Female", example="Female")
     admission_type: str = Field("Emergency", example="Emergency")
@@ -141,6 +142,9 @@ def predict_patient_readmission(patient: PatientInput):
     patient_dict = patient.dict()
     w_log = patient_dict.pop("weight_logistic", 0.35)
     w_xgb = patient_dict.pop("weight_xgb", 0.65)
+    p_name = patient_dict.get("patient_name") or patient_dict.get("name") or "Anonymous Patient"
+    patient_dict["patient_name"] = p_name
+    patient_dict["name"] = p_name
     
     result = pipeline.predict_patient(patient_dict, weight_logistic=w_log, weight_xgb=w_xgb)
     return result
