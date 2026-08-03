@@ -146,7 +146,27 @@ export default function App() {
     try {
       const res = await fetch(`${API_BASE}/history`);
       const data = await res.json();
-      if (data.history) setHistory(data.history);
+      if (data.history) {
+        const activeName = formData.patient_name || formData.name;
+        const patched = data.history.map(item => {
+          const input = item.patient_input || {};
+          const pName = input.patient_name || input.name || item.patient_name || item.name;
+          if (!pName || pName === 'Anonymous Patient') {
+            if (activeName && activeName !== 'Anonymous Patient') {
+              return {
+                ...item,
+                patient_input: {
+                  ...input,
+                  patient_name: activeName,
+                  name: activeName
+                }
+              };
+            }
+          }
+          return item;
+        });
+        setHistory(patched);
+      }
     } catch (e) {
       console.warn("Fetch history error:", e);
     }
@@ -213,6 +233,7 @@ export default function App() {
         if (!data.patient_input) data.patient_input = { ...payload };
         data.patient_input.patient_name = pName;
         data.patient_input.name = pName;
+        setHistory(prev => [data, ...prev.filter(h => h.timestamp !== data.timestamp)]);
       }
       
       setTimeout(() => {
@@ -1349,7 +1370,7 @@ RECOMMENDATION: ${dynamicEnsemble?.recommendation || assessmentResult.ensemble_r
                           <td className="p-5 font-sans text-slate-100">
                             <div className="font-bold text-slate-100 flex items-center gap-1.5">
                               <User className="w-4 h-4 text-cyan-400 inline" />
-                              {item.patient_input?.patient_name || item.patient_input?.name || item.patient_name || item.name || 'Anonymous Patient'}
+                              {item.patient_input?.patient_name || item.patient_input?.name || item.patient_name || item.name || formData.patient_name || formData.name || 'Anonymous Patient'}
                             </div>
                             <div className="text-xs text-slate-400 mt-0.5 font-mono">
                               {item.patient_input?.age ?? '--'}y/o {item.patient_input?.gender ?? ''} ({item.patient_input?.admission_type ?? ''})
