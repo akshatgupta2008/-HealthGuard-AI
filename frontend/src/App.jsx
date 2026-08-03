@@ -209,6 +209,11 @@ export default function App() {
         body: JSON.stringify(payload)
       });
       const data = await res.json();
+      if (data) {
+        if (!data.patient_input) data.patient_input = { ...payload };
+        data.patient_input.patient_name = pName;
+        data.patient_input.name = pName;
+      }
       
       setTimeout(() => {
         setAssessmentResult(data);

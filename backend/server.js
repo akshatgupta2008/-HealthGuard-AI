@@ -294,9 +294,16 @@ app.get('/api/pipeline-details', async (req, res) => {
 
 app.post('/api/assess', async (req, res) => {
   const patientData = req.body;
+  const pName = patientData.patient_name || patientData.name || "Anonymous Patient";
   try {
     const response = await axios.post(`${PYTHON_ML_URL}/predict`, patientData, { timeout: 4000 });
     const result = { ...response.data, engine_mode: "python_fastapi", timestamp: new Date().toISOString() };
+    if (!result.patient_input) {
+      result.patient_input = { ...patientData };
+    }
+    result.patient_input.patient_name = pName;
+    result.patient_input.name = pName;
+
     predictionHistory.unshift(result);
     if (predictionHistory.length > 50) predictionHistory.pop();
     res.json(result);
@@ -304,6 +311,12 @@ app.post('/api/assess', async (req, res) => {
     console.log("[Express] Python ML microservice offline/busy, running fallback JS engine...");
     const fallbackResult = executeFallbackPipeline(patientData);
     fallbackResult.timestamp = new Date().toISOString();
+    if (!fallbackResult.patient_input) {
+      fallbackResult.patient_input = { ...patientData };
+    }
+    fallbackResult.patient_input.patient_name = pName;
+    fallbackResult.patient_input.name = pName;
+
     predictionHistory.unshift(fallbackResult);
     if (predictionHistory.length > 50) predictionHistory.pop();
     res.json(fallbackResult);

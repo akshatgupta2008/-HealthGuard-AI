@@ -71,6 +71,9 @@ class PatientInput(BaseModel):
     weight_logistic: Optional[float] = 0.35
     weight_xgb: Optional[float] = 0.65
 
+    class Config:
+        extra = "allow"
+
 @app.on_event("startup")
 def startup_event():
     try:
