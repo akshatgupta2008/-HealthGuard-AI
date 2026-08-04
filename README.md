@@ -1,119 +1,156 @@
 # HealthGuard AI - 4-Algorithm ML Healthcare Readmission Pipeline 🏥🤖
 
-> **An end-to-end Machine Learning Pipeline & Clinical Decision Support System** combining Unsupervised Patient Segmentation (`K-Means`), Pure Recursive Feature Elimination (`RFE`), Interpretable Baseline Modeling (`Logistic/Ridge Regression`), and High-Precision Non-Linear Predictive Engines (`XGBoost`).
+> **An end-to-end machine learning pipeline and clinical decision support system** that combines unsupervised patient segmentation, recursive feature selection, interpretable baseline modeling, and high-precision nonlinear prediction.
 
 ---
 
-## 🌟 Overview & Architecture
+## 🌟 Overview
 
-Medical readmission datasets contain hundreds of complex, noisy variables (EHR history, lab results, billing flags). **HealthGuard AI** implements a sequential 4-algorithm ML pipeline where the output of each stage enriches the next:
+Medical readmission datasets often contain noisy and highly correlated variables. HealthGuard AI addresses this by applying a sequential 4-stage pipeline where each step improves the next:
 
+```text
+[ Raw Patient Data ]
+        │
+        ▼
+[ K-Means Clustering ]
+        │
+        ▼
+[ Recursive Feature Elimination ]
+        │
+        ┌───────────────┬───────────────┐
+        ▼               ▼
+[ Logistic/Ridge ] [ XGBoost ]
+        └───────────────┬───────────────┘
+                        ▼
+           [ Ensemble Readmission Score ]
 ```
-[ Raw Patient Data (10,000 Records) ]
-                 │
-                 ▼
-┌──────────────────────────────────────────┐
-│  Stage 1: K-Means Clustering (k=4)       │  <-- Unsupervised Patient Segmentation
-│  Appends "Patient Segment ID" Feature    │
-└────────────────┬─────────────────────────┘
-                 │
-                 ▼
-┌──────────────────────────────────────────┐
-│  Stage 2: Recursive Feature Elimination   │  <-- Pure Recursion (RFE)
-│  Prunes noise, isolates top 15 features  │
-└────────────────┬─────────────────────────┘
-                 │
-        ┌────────┴────────┐
-        ▼                 ▼
-┌────────────────┐  ┌────────────────┐
-│ Stage 3: Ridge │  │ Stage 4:       │  <-- Dual Predictive Modeling
-│ Logistic Regr. │  │ XGBoost Engine │
-│ Baseline &     │  │ High Precision │
-│ Coefficients   │  │ Gain Import.   │
-└───────┬────────┘  └───────┬────────┘
-        │                   │
-        └─────────┬─────────┘
-                  ▼
-┌──────────────────────────────────────────┐
-│  Weighted Ensemble Readmission Score     │  <-- Interactive Clinical Dashboard &
-│  & Feature Weight Explainability (XAI)   │      Intervention Protocol
-└──────────────────────────────────────────┘
-```
+
+This workflow creates a more explainable and accurate readmission risk system for clinicians and researchers.
 
 ---
 
 ## 💡 The 4-Algorithm Breakdown
 
 1. **K-Means Clustering (Unsupervised Learning)**
-   - **Role**: Groups patients into 4 distinct persona clusters based on medical history, vitals, and demographics (`High Risk Elderly Comorbid`, `Acute Emergency High-Procedure`, `Moderate Risk Chronic Care`, `Low Risk Elective Recovery`).
-   - **Why**: Creates a new `"Patient Segment"` categorical feature that enhances downstream predictive accuracy.
+   - Groups patients into four distinct segments based on clinical and demographic patterns.
+   - Adds a new patient-segment feature that improves downstream modeling.
 
-2. **Recursive Feature Elimination - RFE (Pure Recursion)**
-   - **Role**: Recursively fits base estimators, ranks feature importance, prunes the single weakest variable, and recurses until the top 15 critical predictors remain.
-   - **Why**: Drastically reduces noise, prevents overfitting, and optimizes model inference speed.
+2. **Recursive Feature Elimination (RFE)**
+   - Iteratively removes weak predictors and retains the most informative features.
+   - Helps reduce noise and improves training efficiency.
 
 3. **Logistic / Ridge Regression (Baseline Supervised Learning)**
-   - **Role**: Establishes baseline readmission probability and provides linear symptom risk weights (coefficients).
-   - **Why**: Gives clinicians clear explainability on *why* predictions were generated.
+   - Provides an interpretable baseline probability for readmission risk.
+   - Produces transparent feature-weight insights for clinical explainability.
 
 4. **XGBoost (Advanced Ensemble Learning)**
-   - **Role**: High-performance gradient boosted decision trees capturing complex non-linear feature interactions.
-   - **Why**: Blended with Logistic Regression via a dynamic weighted ensemble slider.
+   - Captures nonlinear interactions and complex decision boundaries.
+   - Combines with the baseline model for stronger predictive performance.
 
 ---
 
-## 🛠️ Tech Stack & Microservices
+## 🛠️ Tech Stack
 
-- **ML Microservice Engine**: Python 3.14, FastAPI, Uvicorn, scikit-learn, XGBoost, Pandas, NumPy, Joblib.
-- **API Gateway Backend**: Node.js, Express, Axios, CORS.
-- **Clinical Dashboard Frontend**: React 19, Vite, Tailwind CSS v4, Lucide Icons, Recharts.
+- **ML Engine**: Python, scikit-learn, XGBoost, Pandas, NumPy, Joblib
+- **Backend API**: Node.js, Express, Axios, CORS
+- **Frontend Dashboard**: React, Vite, Tailwind CSS, Lucide Icons, Recharts
 
 ---
 
-## 🚀 Quick Start Instructions
+## ✅ Prerequisites
 
-### 1. Clone the Repository
-```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
-cd YOUR_REPO_NAME
+Before running the project, make sure you have:
+
+- **Node.js 18+**
+- **Python 3.10+**
+- **npm** installed with Node
+- A local terminal environment with access to `python` and `npm`
+
+---
+
+## 📁 Project Structure
+
+```text
+HealthGuard-AI/
+├── backend/           # Express API server
+├── frontend/          # React + Vite dashboard
+├── ml_engine/         # Training pipeline and model artifacts
+├── HealthGuard_Readmission_Data/  # Dataset files
+├── package.json       # Root scripts to launch the app
+├── start_app.bat      # Windows launcher
+└── README.md          # Project documentation
 ```
 
-### 2. Install Dependencies
+---
+
+## 🚀 Quick Start
+
+### 1. Clone the repository
+
 ```bash
-# Install root orchestrator dependencies
+git clone https://github.com/akshatgupta2008/-HealthGuard-AI
+cd .\-HealthGuard-AI
+```
+
+### 2. Install dependencies
+
+```bash
 npm install
-
-# Install Node backend dependencies
 npm install --prefix backend
-
-# Install React frontend dependencies
 npm install --prefix frontend
-
-# Install Python ML dependencies
 python -m pip install -r ml_engine/requirements.txt
 ```
 
-### 3. Launch All Services (One Command)
+### 3. Start the full application
+
 ```bash
 npm start
 ```
-*or on Windows, run:*
+
+On Windows, you can also run:
+
 ```cmd
 .\start_app.bat
 ```
 
-Open your browser at **`http://localhost:5173/`** to access the dashboard!
+The dashboard should open at **http://localhost:5173/**.
+
+---
+
+## 🧠 Train the ML Model
+
+To retrain the pipeline and regenerate the model artifact:
+
+```bash
+python ml_engine/train_and_save.py
+```
+
+This script reads the dataset from the data folder and saves the trained model to the ML engine directory.
 
 ---
 
 ## 📊 Dataset & Metrics
 
-- **Dataset**: `readmission_dataset.csv` (10,000 Patient Records).
+- **Dataset**: `readmission_dataset.csv` with 10,000 patient records
 - **Baseline Readmission Rate**: 27.07%
-- **Logistic Regression Baseline**: Accuracy: 72.93% | AUC-ROC: 0.5821
-- **XGBoost Ensemble Engine**: Accuracy: 73.53% | AUC-ROC: 0.6672
+- **Logistic Regression Baseline**: Accuracy 72.93% | AUC-ROC 0.5821
+- **XGBoost Ensemble Engine**: Accuracy 73.53% | AUC-ROC 0.6672
+
+---
+
+## 🔧 Troubleshooting
+
+- If `npm install` fails, make sure you are using a recent Node.js version.
+- If Python dependencies fail to install, upgrade `pip` first:
+
+```bash
+python -m pip install --upgrade pip
+```
+
+- If the app does not open in the browser, confirm that the frontend dev server started successfully and that port `5173` is free.
 
 ---
 
 ## 📝 License
+
 Distributed under the MIT License.
