@@ -89,7 +89,7 @@ HealthGuard-AI/
 
 ```bash
 git clone https://github.com/akshatgupta2008/-HealthGuard-AI
-cd YOUR_REPO_NAME
+cd .\-HealthGuard-AI
 ```
 
 ### 2. Install dependencies
