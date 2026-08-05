@@ -34,11 +34,26 @@ def load_and_preprocess_raw_data(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Ser
     """
     df_clean = df.copy()
     
-    # Handle missing numeric values
+    # Handle missing numeric values safely (handles 1-row dataframes)
     if 'num_lab_procedures' in df_clean.columns:
-        df_clean['num_lab_procedures'] = df_clean['num_lab_procedures'].fillna(df_clean['num_lab_procedures'].median())
+        med_labs = df_clean['num_lab_procedures'].median()
+        if pd.isna(med_labs):
+            med_labs = 40.0
+        df_clean['num_lab_procedures'] = df_clean['num_lab_procedures'].fillna(med_labs)
+        
     if 'num_medications' in df_clean.columns:
-        df_clean['num_medications'] = df_clean['num_medications'].fillna(df_clean['num_medications'].median())
+        med_meds = df_clean['num_medications'].median()
+        if pd.isna(med_meds):
+            med_meds = 15.0
+        df_clean['num_medications'] = df_clean['num_medications'].fillna(med_meds)
+        
+    for col in NUMERICAL_COLS:
+        if col in df_clean.columns:
+            df_clean[col] = df_clean[col].fillna(0)
+            
+    for col in CATEGORICAL_COLS:
+        if col in df_clean.columns:
+            df_clean[col] = df_clean[col].fillna("Unknown")
         
     X_raw = df_clean.drop(columns=[c for c in DROP_COLS if c in df_clean.columns])
     y = df_clean[TARGET_COL] if TARGET_COL in df_clean.columns else None

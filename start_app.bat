@@ -1,10 +1,9 @@
 @echo off
 echo ========================================================
-echo   Starting HealthGuard AI 4-Algorithm ML System
+echo   Starting HealthGuard AI Streamlit Clinical Application
 echo ========================================================
 echo.
-echo 1. Python FastAPI ML Microservice  (http://127.0.0.1:8000)
-echo 2. Express Gateway Backend         (http://localhost:5000)
-echo 3. React Vite Dashboard Frontend   (http://localhost:5173)
+echo Launching Streamlit Landing Page & Interactive Dashboard...
+echo Dashboard will open at: http://localhost:8501
 echo.
-npm start
+streamlit run app.py

@@ -1,7 +1,7 @@
 """
-HealthGuard AI: Automated Test Suite Runner (Python 3.14+ Compatible)
-----------------------------------------------------------------------
-Executes unit & integration tests for ML Pipeline package (`src.model`) and FastAPI microservice (`src.api`).
+HealthGuard AI: Automated Data Science Test Suite Runner
+---------------------------------------------------------
+Executes unit & integration tests for ML Pipeline package (`src.model`).
 """
 
 import os
@@ -9,13 +9,11 @@ import sys
 import unittest
 import pandas as pd
 from pathlib import Path
-from fastapi.testclient import TestClient
 
 # Add project root to sys.path
 sys.path.append(str(Path(__file__).parent.parent))
 
 from src.model import FourAlgorithmPipeline, CLUSTER_PERSONAS, DEFAULT_DATASET_PATH
-from src.api import app
 
 class TestHealthGuardPipeline(unittest.TestCase):
     @classmethod
@@ -66,41 +64,9 @@ class TestHealthGuardPipeline(unittest.TestCase):
         self.assertIn(res["ensemble_result"]["risk_tier"], ["Critical Risk", "High Risk", "Moderate Risk", "Low Risk"])
         self.assertTrue(0.0 <= res["ensemble_result"]["ensemble_score"] <= 1.0)
 
-    def test_04_fastapi_health_endpoint(self):
-        client = TestClient(app)
-        response = client.get("/health")
-        self.assertEqual(response.status_code, 200)
-        json_data = response.json()
-        self.assertEqual(json_data["status"], "online")
-        self.assertIn("service", json_data)
-
-    def test_05_fastapi_predict_endpoint(self):
-        client = TestClient(app)
-        payload = {
-            "patient_name": "FastAPI Tester",
-            "age": 68,
-            "gender": "Male",
-            "admission_type": "Emergency",
-            "primary_diagnosis_code": "E11",
-            "num_prior_admissions": 3,
-            "time_in_hospital": 5,
-            "num_lab_procedures": 40.0,
-            "num_medications": 15.0,
-            "has_comorbidity": 1,
-            "discharge_disposition": "Home",
-            "insurance_type": "Medicare",
-            "hospital_id": 101,
-            "weight_logistic": 0.35,
-            "weight_xgb": 0.65
-        }
-        response = client.post("/predict", json=payload)
-        self.assertEqual(response.status_code, 200)
-        json_data = response.json()
-        self.assertIn("ensemble_result", json_data)
-        self.assertGreaterEqual(json_data["ensemble_result"]["readmission_risk_percentage"], 0.0)
-
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestHealthGuardPipeline)
     runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(suite)
-    sys.exit(0 if result.wasSuccessful() else 1)
+    if not result.wasSuccessful():
+        sys.exit(1)
