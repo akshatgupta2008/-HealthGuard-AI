@@ -7,7 +7,6 @@ import streamlit as st
 sys.path.append(str(Path(__file__).parent))
 
 from src.model import CLUSTER_PERSONAS, DEFAULT_DATASET_PATH, DEFAULT_MODEL_PATH, FourAlgorithmPipeline
-from src.predict import PRESET_PROFILES
 
 
 st.set_page_config(
@@ -16,13 +15,12 @@ st.set_page_config(
     layout="wide",
 )
 
-# Minimal styling for a clean, focused presentation
 st.markdown(
     """
 <style>
-  .hero { background: linear-gradient(90deg,#0f172a,#0f766e); color: #fff; padding: 20px; border-radius: 10px; }
-  .feature { padding: 8px 0; }
-  .small-card { background: #fff; padding: 12px; border-radius: 10px; box-shadow: 0 6px 18px rgba(2,6,23,0.06); }
+  .hero { background: linear-gradient(90deg,#0f172a,#0f766e); color: #fff; padding: 20px; border-radius: 12px; }
+  .card { background: #fff; padding: 16px; border-radius: 12px; box-shadow: 0 6px 18px rgba(2,6,23,0.06); }
+  .section-title { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
 </style>
 """,
     unsafe_allow_html=True,
@@ -67,151 +65,130 @@ def load_artifacts():
 
 def build_patient_form(defaults):
     with st.form("patient_form"):
-        cols = st.columns(2)
+        col1, col2 = st.columns(2)
+        with col1:
+            patient_name = st.text_input("Patient name", value=defaults["patient_name"])
+            age = st.number_input("Age", min_value=18, max_value=100, value=int(defaults["age"]))
+            gender = st.selectbox("Gender", ["Female", "Male"], index=["Female", "Male"].index(defaults["gender"]))
+            admission_type = st.selectbox(
+                "Admission type",
+                ["Emergency", "Elective", "Urgent"],
+                index=["Emergency", "Elective", "Urgent"].index(defaults["admission_type"]),
+            )
+            diagnosis = st.text_input("Primary diagnosis code", value=defaults["primary_diagnosis_code"])
+            prior_admissions = st.number_input(
+                "Prior admissions", min_value=0, max_value=20, value=int(defaults["num_prior_admissions"])
+            )
+
+        with col2:
+            time_in_hospital = st.number_input(
+                "Time in hospital (days)", min_value=1, max_value=30, value=int(defaults["time_in_hospital"])
+            )
+            num_lab_procedures = st.number_input(
+                "Number of lab procedures", min_value=0, max_value=200, value=int(defaults["num_lab_procedures"])
+            )
+            num_medications = st.number_input(
+                "Number of medications", min_value=0, max_value=100, value=int(defaults["num_medications"])
+            )
+            has_comorbidity = st.selectbox("Has comorbidity", [0, 1], index=int(defaults["has_comorbidity"]))
+            discharge_disposition = st.selectbox(
+                "Discharge disposition", ["Home", "Transfer", "SNF"], index=0
+            )
+            insurance_type = st.selectbox(
+                "Insurance type", ["Medicare", "Private", "Medicaid"], index=0
+            )
+
+        submitted = st.form_submit_button("Generate readmission risk")
+
+    payload = {
+        "patient_name": patient_name,
+        "age": age,
+        "gender": gender,
+        "admission_type": admission_type,
+        "primary_diagnosis_code": diagnosis,
+        "num_prior_admissions": prior_admissions,
+        "time_in_hospital": time_in_hospital,
+        "num_lab_procedures": num_lab_procedures,
+        "num_medications": num_medications,
+        "has_comorbidity": has_comorbidity,
+        "discharge_disposition": discharge_disposition,
+        "insurance_type": insurance_type,
+        "hospital_id": defaults["hospital_id"],
+    }
+    return submitted, payload
+
+
 st.markdown(
     """
     <div class="hero">
         <h1>HealthGuard AI</h1>
-        <p>Focused clinical readmission risk demo — clean, shareable, and interview-ready.</p>
+        <p>Clinical readmission risk demo with EDA, clustering, RFE, Logistic Regression, and XGBoost.</p>
     </div>
     """,
     unsafe_allow_html=True,
 )
 
-tabs = st.tabs(["Overview", "Live Predictor", "Notebooks"])
+pipeline, df = load_artifacts()
+
+tabs = st.tabs(["Overview", "Live Predictor", "Dataset"])
 
 with tabs[0]:
     st.markdown("## Overview")
-    st.markdown("HealthGuard AI is a compact end-to-end demonstration of a clinical readmission risk pipeline.")
-    st.markdown("### Key features")
-    st.markdown("- Patient segmentation with KMeans personas\\n- Feature selection with RFE\\n- Interpretable logistic regression + XGBoost ensemble\\n- Streamlit demo with a live predictor")
+    st.write(
+        "HealthGuard AI is a notebook-backed healthcare ML project that predicts 30-day hospital readmission risk and surfaces interpretable drivers for each patient."
+    )
 
-    with st.container():
-        st.markdown("### Model & Data at a glance")
-        cols = st.columns(3)
-        with cols[0]:
-            st.metric("Dataset rows", f"{len(df):,}")
-        with cols[1]:
-            st.metric("Overall readmission", f"{df['readmitted_within_30days'].mean() * 100:.1f}%")
-        with cols[2]:
-            st.metric("Selected features", pipeline.metrics.get("rfe_selected_count", 0))
+    metrics_cols = st.columns(3)
+    with metrics_cols[0]:
+        st.metric("Dataset rows", f"{len(df):,}")
+    with metrics_cols[1]:
+        st.metric("Overall readmission", f"{df['readmitted_within_30days'].mean() * 100:.1f}%")
+    with metrics_cols[2]:
+        st.metric("Selected features", pipeline.metrics.get("rfe_selected_count", 0))
 
-    st.markdown("### How to use this demo")
+    st.markdown("### Project scope")
     st.markdown(
-        "1) Use the Live Predictor to simulate patient scenarios. 2) Review the executed notebooks for methodology and training details."
+        "- Exploratory data analysis\n- Feature engineering and selection\n- K-Means patient segmentation\n- Logistic Regression and XGBoost comparison\n- Ensemble risk scoring"
     )
 
 with tabs[1]:
     st.markdown("## Live Predictor")
-    st.info("Enter values and click 'Generate readmission risk' to run the HealthGuard AI pipeline.")
-    submitted, patient_payload = build_patient_form(default_patient)
+    st.info("Enter patient values and generate a readmission risk estimate.")
+
+    submitted, patient_payload = build_patient_form(DEFAULT_PATIENT)
+
     if submitted:
         result = pipeline.predict_patient(patient_payload)
         ensemble = result["ensemble_result"]
         stages = result["pipeline_stages"]
         persona = stages["stage1_kmeans"]["persona"]
 
-        a, b, c, d = st.columns(4)
-        with a:
+        score_cols = st.columns(4)
+        with score_cols[0]:
             st.metric("Risk tier", ensemble["risk_tier"])
-        with b:
-            st.metric("Ensemble risk", f'{ensemble["readmission_risk_percentage"]:.1f}%')
-        with c:
-            st.metric("Logistic score", f'{stages["stage3_logistic_regression"]["percentage"]:.1f}%')
-        with d:
-            st.metric("XGBoost score", f'{stages["stage4_xgboost"]["percentage"]:.1f}%')
+        with score_cols[1]:
+            st.metric("Ensemble risk", f"{ensemble['readmission_risk_percentage']:.1f}%")
+        with score_cols[2]:
+            st.metric("Logistic score", f"{stages['stage3_logistic_regression']['percentage']:.1f}%")
+        with score_cols[3]:
+            st.metric("XGBoost score", f"{stages['stage4_xgboost']['percentage']:.1f}%")
 
         st.success(ensemble["recommendation"])
         st.write(f"Patient segment: **{persona['name']}**  |  {persona['description']}")
 
-        detail_left, detail_right = st.columns(2)
-        with detail_left:
+        left, right = st.columns(2)
+        with left:
             st.markdown("#### Top logistic drivers")
             logistic_df = pd.DataFrame(stages["stage3_logistic_regression"]["top_feature_contributions"])
             st.dataframe(logistic_df, use_container_width=True, hide_index=True)
-        with detail_right:
+        with right:
             st.markdown("#### Top XGBoost drivers")
             xgb_df = pd.DataFrame(stages["stage4_xgboost"]["top_importance_drivers"])
             st.dataframe(xgb_df, use_container_width=True, hide_index=True)
 
 with tabs[2]:
-    st.markdown("## Notebooks")
-    st.markdown("Executed notebooks with narrative and training steps are included below.")
-    nb1 = 'notebooks/01_exploratory_data_analysis.executed.ipynb'
-    nb2 = 'notebooks/02_model_training_and_eval.executed.ipynb'
-    st.markdown(f"- [Exploratory analysis]({nb1})")
-    st.markdown(f"- [Training & evaluation]({nb2})")
+    st.markdown("## Dataset")
+    st.dataframe(df.head(12), use_container_width=True, hide_index=True)
 
-    st.markdown("If you want these exported to HTML or pushed to a remote branch, tell me and I can do that next.")
-with col4:
-    st.markdown(f'<div class="card"><div class="section-title">Selected features</div><div style="font-size:1.7rem;font-weight:800;">{pipeline.metrics.get("rfe_selected_count", 0)}</div><div>after RFE</div></div>', unsafe_allow_html=True)
-
-st.write("")
-left, right = st.columns([1.15, 0.85])
-
-with left:
-    st.markdown('<div class="card"><div class="section-title">Project snapshot</div></div>', unsafe_allow_html=True)
-    st.markdown(
-        """
-        <span class="pill">Python for data</span>
-        <span class="pill">Regression</span>
-        <span class="pill">Classification</span>
-        <span class="pill">Clustering</span>
-        <span class="pill">Metrics</span>
-        <span class="pill">scikit-learn</span>
-        <span class="pill">Kaggle-ready narrative</span>
-        """,
-        unsafe_allow_html=True,
-    )
-    st.write(
-        "This version keeps the project focused on a single Streamlit entrypoint. It shows the dataset, model metrics, patient segmentation, and an interactive risk score without any frontend or backend stack."
-    )
-
-with right:
-    st.markdown('<div class="card"><div class="section-title">Model facts</div></div>', unsafe_allow_html=True)
-    st.write(f"Training rows: {pipeline.metrics.get('total_samples', len(df)):,}")
-    st.write(f"Overall readmission rate: {pipeline.metrics.get('readmission_rate_overall', 0) * 100:.1f}%")
-    st.write(f"Top segment example: {CLUSTER_PERSONAS.get(0, {}).get('name', 'Patient segment')}")
-
-st.write("")
-st.markdown("### Interactive Risk Predictor")
-submitted, patient_payload = build_patient_form(default_patient)
-
-if submitted:
-    result = pipeline.predict_patient(patient_payload)
-    ensemble = result["ensemble_result"]
-    stages = result["pipeline_stages"]
-    persona = stages["stage1_kmeans"]["persona"]
-
-    a, b, c, d = st.columns(4)
-    with a:
-        st.metric("Risk tier", ensemble["risk_tier"])
-    with b:
-        st.metric("Ensemble risk", f'{ensemble["readmission_risk_percentage"]:.1f}%')
-    with c:
-        st.metric("Logistic score", f'{stages["stage3_logistic_regression"]["percentage"]:.1f}%')
-    with d:
-        st.metric("XGBoost score", f'{stages["stage4_xgboost"]["percentage"]:.1f}%')
-
-    st.success(ensemble["recommendation"])
-    st.write(f"Patient segment: **{persona['name']}**  |  {persona['description']}")
-
-    detail_left, detail_right = st.columns(2)
-    with detail_left:
-        st.markdown("#### Top logistic drivers")
-        logistic_df = pd.DataFrame(stages["stage3_logistic_regression"]["top_feature_contributions"])
-        st.dataframe(logistic_df, use_container_width=True, hide_index=True)
-    with detail_right:
-        st.markdown("#### Top XGBoost drivers")
-        xgb_df = pd.DataFrame(stages["stage4_xgboost"]["top_importance_drivers"])
-        st.dataframe(xgb_df, use_container_width=True, hide_index=True)
-
-st.write("")
-st.markdown("### Dataset Preview")
-st.dataframe(df.head(12), use_container_width=True, hide_index=True)
-
-st.write("")
-st.markdown("### How to present this project")
-st.write(
-    "1. Frame the problem as a binary classification task. 2. Explain the preprocessing and feature selection pipeline. 3. Report accuracy, precision, recall, and AUC. 4. Show one or two Kaggle-style case studies with a clear solution anatomy."
-)
+    st.markdown("### Patient personas")
+    st.write(CLUSTER_PERSONAS)

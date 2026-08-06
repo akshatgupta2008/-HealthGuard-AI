@@ -16,7 +16,14 @@ def _remove_google_cloud_sdk_paths() -> None:
         os.path.normcase(r"C:\Users\SWIFT LITE 14\AppData\Local\Google\google-cloud-sdk\lib\third_party"),
     }
 
-    sys.path[:] = [path for path in sys.path if os.path.normcase(path) not in blocked]
+    def _is_blocked(path: str) -> bool:
+        normalized = os.path.normcase(path)
+        return any(
+            normalized == prefix or normalized.startswith(prefix + os.sep)
+            for prefix in blocked
+        )
+
+    sys.path[:] = [path for path in sys.path if not _is_blocked(path)]
 
 
 _remove_google_cloud_sdk_paths()
