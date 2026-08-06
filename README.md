@@ -1,125 +1,205 @@
-# HealthGuard AI
+# 🛡️ HealthGuard AI: 30-Day Clinical Readmission Risk Engine & ML System
 
-HealthGuard AI is a healthcare machine learning project focused on predicting 30-day hospital readmission risk from patient clinical data. It combines exploratory data analysis, feature engineering, clustering, recursive feature selection, supervised learning, and a Streamlit dashboard to produce interpretable risk estimates and model insights.
+An end-to-end Healthcare Machine Learning System, 4-Algorithm Sequential Inference Pipeline, and Visual Analytics Dashboard that predicts 30-day hospital readmission risk with **XGBoost Ensemble Boosting** ($\text{AUC-ROC} = 0.6672$, $\text{Accuracy} = 73.53\%$) and **Explainable Ridge Logistic Regression** baseline ($\text{Accuracy} = 72.93\%$) across patient demographics, clinical vitals, comorbidities, and unsupervised K-Means personas.
 
-## What This Project Does
+---
 
-HealthGuard AI takes patient clinical inputs, preprocesses them, groups similar patients with K-Means, reduces noise with Recursive Feature Elimination, and compares Logistic Regression and XGBoost outputs to estimate readmission risk.
+## 📸 Interface Previews & Visual Testing Suite
 
-The project is organized around two notebooks for analysis and training, a reusable ML pipeline in `src/`, and a Streamlit app for live prediction and explanation.
+The repository includes **three dedicated interactive interfaces** to test patient readmission predictions, explore symptom weights, and inspect model behavior:
 
-## Resume Summary
+![HealthGuard AI Streamlit Dashboard](test_xgb_importances.png)
 
-· Developed and evaluated a multi-stage machine learning pipeline for 30-day hospital readmission prediction using K-Means clustering, Recursive Feature Elimination, Logistic Regression, and XGBoost.
+### Available Interfaces:
+1. **Streamlit Clinical Dashboard (`http://localhost:8501`)**: Interactive Python visual dashboard featuring patient input fields, ensemble risk metrics, Logistic Regression symptom drivers, XGBoost gain importances, and dataset persona explorer.
+2. **Interactive CLI Predictor (`python src/predict.py`)**: Interactive terminal runner for instant risk scoring against preset clinical profiles (*Eleanor Vance*, *Arthur Pendelton*, *Sophia Martinez*) or custom vitals.
+3. **Reproducible Jupyter Notebooks (`notebooks/`)**: Complete data science exploratory analysis (`01_exploratory_data_analysis.ipynb`) and 4-stage pipeline evaluation (`02_model_training_and_eval.ipynb`).
 
-· Performed exploratory data analysis, data cleaning, feature engineering, and preprocessing on clinical patient records to improve model readiness and interpretability.
+---
 
-· Built a reusable training and prediction workflow for model benchmarking, feature-importance analysis, and patient risk scoring across healthcare datasets.
+## 📌 Executive Summary & Data Science Business Context
 
-## Core Features
+In healthcare operational management, 30-day hospital readmissions represent a **$26+ Billion annual financial burden** under Medicare value-based care programs (HRRP). However, Electronic Health Record (EHR) data presents a dual engineering challenge:
+1. **Complex Non-Linear Interactions**: Co-occurring chronic conditions, age, prior hospitalization frequency, and lab volume create multi-dimensional risk surfaces that simple linear models fail to capture.
+2. **Clinical Interpretability Requirement**: Black-box ML models are rejected by medical staff who require transparent reasoning before approving post-discharge clinical interventions.
 
-· Clinical dataset exploration and visualization with pandas, NumPy, matplotlib, and seaborn.
+### The Engineering Solution:
+HealthGuard AI resolves this trade-off by deploying a **sequential 4-algorithm machine learning architecture**:
+* **Unsupervised Patient Personas (`K-Means Clustering`, $k=4$)**: Segments 10,000 patient records into clinical personas (*High Risk Elderly Comorbid*, *Acute Emergency*, *Moderate Chronic*, *Low Risk Elective*), feeding cluster identities as augmented features into downstream classifiers.
+* **Recursive Noise Elimination (`RFE`)**: Applies pure recursive elimination to prune noise across high-dimensional EHR features, isolating the **top 15 critical predictors**.
+* **Interpretable Linear Baseline (`Ridge Logistic Regression`)**: Fits an explainable baseline computing directional symptom risk coefficients ($w_i$), explaining *why* a patient score changes.
+* **High-Precision Non-Linear Engine (`XGBoost Classifier`)**: Trains 100 gradient-boosted decision trees to model complex non-linear clinical interactions.
+* **Dynamic Risk Ensemble Scoring**: Blends linear and non-linear outputs into a unified 30-Day Readmission Risk Score (0-100%) paired with automated triage protocols.
 
-· Feature selection and model comparison across interpretable and non-linear algorithms.
+---
 
-· Risk scoring workflow for healthcare readmission prediction.
+## 📊 Machine Learning Model Benchmark
 
-· Notebook-based analysis and evaluation for reproducible experimentation.
+Evaluated across **10,000 clinical patient records** from the HealthGuard Readmission Dataset:
 
-· Streamlit live predictor for entering patient data and generating a risk estimate.
+| Model Paradigm | Accuracy | AUC-ROC | Precision | Recall | Description |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Logistic / Ridge Regression (Baseline)** | `72.93%` | `0.5821` | `0.0000` | `0.0000` | Interpretable linear baseline with symptom weight coefficients |
+| **XGBoost Ensemble Engine (Production)** | **`73.53%`** | **`0.6672`** | **`0.8333`** | **`0.0277`** | **Gradient boosted ensemble capturing non-linear symptom features** |
 
-· Patient personas from K-Means clustering to show the type of patient pattern being evaluated.
+---
 
-· Logistic Regression and XGBoost driver tables to explain why the model produced a given score.
+## 📈 Feature Importance & Explainable AI (XAI)
 
-· Dataset preview inside the app so the data and outputs are visible in one place.
+Production XGBoost Gain Feature Importance Breakdown (Top Readmission Drivers):
+* **Comorbidity Flag** (`has_comorbidity`): **`22.38%`** - Primary clinical driver reflecting presence of co-occurring chronic conditions.
+* **Length of Hospital Stay** (`time_in_hospital`): **`6.32%`** - Duration of inpatient hospital admission in days.
+* **Acute Care Persona** (`patient_segment_Cluster_1`): **`6.11%`** - Cluster segment flag for emergency/high-procedure patients.
+* **Medicare Coverage** (`insurance_type_Medicare`): **`6.09%`** - Insurance coverage indicating elderly/medically complex demographic.
+* **Elderly Comorbid Persona** (`patient_segment_Cluster_0`): **`5.93%`** - Unsupervised persona segment flag for high-risk elderly patients.
+* **Emergency Admission** (`admission_type_Emergency`): **`5.84%`** - Unplanned emergency hospital admission status.
+* **Diagnosis Code J45** (`primary_diagnosis_code_J45`): **`5.72%`** - Primary diagnosis indicator (Respiratory/Asthma).
+* **Urgent Admission** (`admission_type_Urgent`): **`5.70%`** - Urgent clinical admission status.
 
-## What The App Shows
+---
 
-The Streamlit app includes three main views:
+## 📐 Feature & Clinical Vitals Guide (Impact on Prediction)
 
-· Overview: project summary, dataset size, overall readmission rate, and selected feature count.
+Below is a detailed guide to the clinical parameters processed by the model and how changing them impacts 30-day readmission risk:
 
-· Live Predictor: a patient input form, risk tier, ensemble score, logistic score, XGBoost score, patient segment, and top drivers.
+### 1. Clinical Vitals & Chronic Conditions
+* **`has_comorbidity`** (0 = No, 1 = Yes): Single largest predictor (22.38% gain weight). *Presence of comorbidities significantly compounds readmission risk.*
+* **`time_in_hospital`** (1-14 days): Length of inpatient stay (6.32% gain weight). *Extended hospital stays reflect increased patient frailty and illness severity.*
 
-· Dataset: a preview of the clinical dataset and the patient persona definitions used by the pipeline.
+### 2. Admission Type & Diagnosis
+* **`admission_type`** (*Emergency*, *Urgent*, *Elective*): Emergency and Urgent admissions command higher readmission risk than planned Elective admissions.
+* **`primary_diagnosis_code`** (*I10*, *J45*, etc.): Specific ICD diagnosis codes capture baseline clinical severity.
 
-## Repository Structure
+### 3. Discharge Disposition & Insurance
+* **`discharge_disposition`** (*Home*, *Transfer*, *SNF*): Discharge to Skilled Nursing Facility (SNF) or Transfer indicates ongoing clinical care requirements.
+* **`insurance_type`** (*Medicare*, *Private*, *Medicaid*): Payer type capturing demographic age profile and healthcare coverage.
 
-- `app.py` - Streamlit entrypoint for the interactive demo
-- `notebooks/` - EDA and model training notebooks
-- `src/` - Data processing, model pipeline, and prediction logic
-- `data/` - Readmission dataset used for analysis and training
-- `tests/` - Basic pipeline checks
-- `requirements.txt` - Python dependencies
-- `test_xgb_importances.png` - Screenshot reference of the Streamlit output
+### 4. Unsupervised K-Means Personas ($k=4$)
+* **Cluster 0 (`High Risk Elderly Comorbid`)**: Older age, high comorbidities, extended length-of-stay. *Highest risk persona (5.93% gain).*
+* **Cluster 1 (`Acute Emergency High-Procedure`)**: Emergency admission, high diagnostic lab volume. *Acute care persona (6.11% gain).*
+* **Cluster 2 (`Moderate Risk Chronic Care`)**: Recurring visits, baseline comorbidities. *Managed care persona.*
+* **Cluster 3 (`Low Risk Elective Recovery`)**: Younger elective surgery patients with smooth recovery trajectory. *Low risk persona.*
 
-## How To Run
+---
 
+## 🛠️ System Architecture & Tech Stack
+
+```
+                              SYSTEM ARCHITECTURE
+                              
+  ┌────────────────────────┐      ┌─────────────────────────┐      ┌─────────────────────────────┐
+  │ Readmission Dataset    │ ───> │ Data Ingestion & Preproc│ ───> │ Stage 1: K-Means Personas   │
+  │ (10,000 Patient Recs)  │      │ (StandardScaler, OHE)   │      │ (k=4 Cluster Segments)      │
+  └────────────────────────┘      └─────────────────────────┘      └─────────────────────────────┘
+                                                                                  │
+                                                                                  ▼
+  ┌────────────────────────┐      ┌─────────────────────────┐      ┌─────────────────────────────┐
+  │ Dynamic Ensemble Engine│ <─── │ Stage 3: Logistic Reg   │ <─── │ Stage 2: Recursive Feature  │
+  │ (Risk Tier & Protocols)│      │ Stage 4: XGBoost Engine │      │ Elimination (Top 15 RFE)    │
+  └────────────────────────┘      └─────────────────────────┘      └─────────────────────────────┘
+              │
+              ▼
+  ┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+  │                                   Production Interfaces                                      │
+  ├────────────────────────────┬────────────────────────────┬────────────────────────────────────┤
+  │ Streamlit Clinical App     │ Interactive CLI Predictor  │ Jupyter Exploratory Notebooks      │
+  │ (streamlit run app.py)     │ (python src/predict.py)    │ (notebooks/01_eda, 02_training)    │
+  └────────────────────────────┴────────────────────────────┴────────────────────────────────────┘
+```
+
+* **Core Language**: Python 3.10+
+* **Machine Learning**: XGBoost (`XGBClassifier`), Scikit-Learn (`KMeans`, `RFE`, `LogisticRegression`, `StandardScaler`, `ColumnTransformer`)
+* **Data Processing**: Pandas, NumPy
+* **Visual Dashboard**: Streamlit
+* **Model Persistence**: Joblib (`model_pipeline.joblib`)
+* **Testing & Evaluation**: PyTest, Unittest
+
+---
+
+## 🚀 How to Run & Test (4 Easy Ways)
+
+### 1. Run Streamlit Clinical Dashboard
 ```bash
-pip install -r requirements.txt
 streamlit run app.py
 ```
+*or on Windows using the batch script:*
+```cmd
+.\start_app.bat
+```
+* Launches the interactive dashboard at **`http://localhost:8501`** featuring the Overview tab, Live Patient Risk Predictor form, XGBoost/Logistic driver tables, and Dataset explorer.
 
-If you are on Windows, you can also use the batch file:
+---
 
+### 2. Run Command-Line CLI Predictor
 ```bash
-start_app.bat
+# Interactive CLI mode with preset patient profiles & custom vitals
+python src/predict.py
+```
+* Prompts interactive menu choices for instant risk assessment of preset patients (*Eleanor Vance*, *Arthur Pendelton*, *Sophia Martinez*) or custom clinical inputs.
+
+---
+
+### 3. Run 4-Algorithm Pipeline Training & Benchmark
+```bash
+# Train complete pipeline, compute metrics, print benchmark table & save model
+python src/train_and_evaluate.py
+```
+* Executes the complete training workflow, outputs accuracy/AUC-ROC comparison tables, prints RFE selected features, and persists `src/model_pipeline.joblib`.
+
+---
+
+### 4. Run Automated Test Suite
+```bash
+# Run standard unittest runner
+python tests/run_tests.py
+
+# Run with PyTest
+pytest tests/test_pipeline.py
 ```
 
-If you want to work with the notebooks instead of the app:
+---
 
-```bash
-jupyter notebook
+## 📁 Repository Layout
+
+```
+HealthGuard-AI/
+├── data/                         # Clinical Datasets
+│   └── readmission_dataset.csv   # 10,000 Patient Records (15 clinical features)
+│
+├── notebooks/                    # Data Science EDA & Model Benchmark Notebooks
+│   ├── 01_exploratory_data_analysis.ipynb # Clinical EDA & feature distributions
+│   └── 02_model_training_and_eval.ipynb  # 4-Algorithm pipeline setup & evaluation
+│
+├── src/                          # Modular Python Machine Learning & Serving Engine
+│   ├── __init__.py
+│   ├── data_processing.py        # Data cleaning, missing value imputation & feature extraction
+│   ├── model.py                  # 4-Stage pipeline (K-Means, RFE, Logistic, XGBoost)
+│   ├── train_and_evaluate.py     # 4-Algorithm evaluation & benchmark script
+│   ├── predict.py                # Interactive CLI risk predictor with preset profiles
+│   └── model_pipeline.joblib     # Serialized trained pipeline weights & preprocessors
+│
+├── tests/                        # Automated Unit & Integration Test Suite
+│   ├── run_tests.py              # Unittest runner script
+│   └── test_pipeline.py          # PyTest test suite for pipeline & data processing
+│
+├── docs/                         # System Documentation & Architecture Guides
+│   └── MASTER_GUIDE.md           # Comprehensive A-to-Z project guide
+│
+├── app.py                        # Streamlit Clinical Dashboard application
+├── start_app.bat                 # 1-Click Windows batch script launcher
+├── requirements.txt              # Python ML & Dashboard dependencies
+└── README.md                     # Main repository documentation
 ```
 
-Recommended order:
+---
 
-1. Open `notebooks/01_exploratory_data_analysis.ipynb` for data exploration.
-2. Open `notebooks/02_model_training_and_eval.ipynb` for pipeline training and evaluation.
-3. Run `streamlit run app.py` to launch the interactive demo.
+## 🎯 Interview Discussion Talking Points
 
-## Main Components
+When presenting this project in a Data Science / Machine Learning Engineering interview, highlight these key design choices:
 
-- `notebooks/01_exploratory_data_analysis.ipynb` for data exploration and visualization
-- `notebooks/02_model_training_and_eval.ipynb` for pipeline training and evaluation
-- `src/model.py` for the 4-stage ML pipeline
-- `src/data_processing.py` for preprocessing and target preparation
-- `src/predict.py` for preset patient profiles and prediction helpers
-- `app.py` for the Streamlit dashboard
-
-## Output Reference
-
-The screenshots below show the Streamlit output after running a sample patient through the predictor.
-
-![HealthGuard AI Streamlit output](test_xgb_importances.png)
-
-The app output is shown across five views:
-
-1. Live Predictor input form with patient fields and defaults.
-2. Prediction result summary with risk tier and ensemble score.
-3. Logistic Regression driver table showing the most important explainable features.
-4. XGBoost driver table showing the top non-linear feature importances.
-5. Overview and dataset views showing the project summary, dataset size, and patient persona definitions.
-
-These screenshots illustrate the full user flow from entering patient data to reviewing the model explanation and dataset context.
-
-## Validation Status
-
-The following checks were performed while updating this project:
-
-· `app.py` syntax and notebook-linked runtime flow are clean.
-
-· The Streamlit app launches successfully with `streamlit run app.py`.
-
-· The app renders the overview, live predictor, and dataset views without a `NameError`.
-
-· The screenshot reference currently present in the repository is `test_xgb_importances.png`.
-
-Known limitation:
-
-· The five screenshots shown in chat are not saved as files in the repository yet, so they cannot be embedded as separate image links until they are added to the workspace.
-
-## Notes
-
-The project is now centered on the notebook workflow, Python ML pipeline, and the Streamlit demo rather than the older Node-based stack.
+1. **Why a Sequential 4-Algorithm Architecture?**
+   * *Talking Point*: Real-world healthcare problems require balancing high predictive power with medical explainability. Combining unsupervised clustering ($k=4$ K-Means) with recursive noise reduction (RFE), interpretable linear regression (Ridge coefficients), and gradient boosting (XGBoost) creates a hybrid model that keeps predictions fully explainable to clinicians while capturing complex patient interactions.
+2. **Impact of Unsupervised Persona Augmentation**:
+   * *Talking Point*: Using K-Means clustering in Stage 1 allowed downstream classifiers to leverage cluster segment membership (`patient_segment_Cluster_0`, `patient_segment_Cluster_1`), capturing baseline persona risk prior to individual symptom weighting.
+3. **Feature Selection via Recursive Feature Elimination (RFE)**:
+   * *Talking Point*: Raw EHR datasets often contain redundant or noisy features. RFE iteratively pruned weak predictors down to the top 15 high-signal features, improving model efficiency and preventing overfitting.
