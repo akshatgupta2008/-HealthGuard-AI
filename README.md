@@ -8,7 +8,9 @@ An end-to-end Healthcare Machine Learning System, 4-Algorithm Sequential Inferen
 
 The repository includes **three dedicated interactive interfaces** to test patient readmission predictions, explore symptom weights, and inspect model behavior:
 
-![HealthGuard AI Streamlit Dashboard](test_xgb_importances.png)
+![HealthGuard AI Streamlit Dashboard Overview](docs/images/streamlit_dashboard_1.png)
+
+![HealthGuard AI Model Drivers & Risk Score Benchmark](docs/images/streamlit_dashboard_2.png)
 
 ### Available Interfaces:
 1. **Streamlit Clinical Dashboard (`http://localhost:8501`)**: Interactive Python visual dashboard featuring patient input fields, ensemble risk metrics, Logistic Regression symptom drivers, XGBoost gain importances, and dataset persona explorer.
