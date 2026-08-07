@@ -1,6 +1,11 @@
 # 🛡️ HealthGuard AI: 30-Day Clinical Readmission Risk Engine & ML System
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://healthguard2008.streamlit.app/)
+[![Live App Banner](https://img.shields.io/badge/Live_App-healthguard2008.streamlit.app-2e7d32?style=for-the-badge&logo=streamlit)](https://healthguard2008.streamlit.app/)
+
 An end-to-end Healthcare Machine Learning System, 4-Algorithm Sequential Inference Pipeline, and Visual Analytics Dashboard that predicts 30-day hospital readmission risk with **XGBoost Ensemble Boosting** ($\text{AUC-ROC} = 0.6672$, $\text{Accuracy} = 73.53\%$) and **Explainable Ridge Logistic Regression** baseline ($\text{Accuracy} = 72.93\%$) across patient demographics, clinical vitals, comorbidities, and unsupervised K-Means personas.
+
+🚀 **Live Interactive Web App**: [https://healthguard2008.streamlit.app/](https://healthguard2008.streamlit.app/)
 
 ---
 
@@ -13,9 +18,10 @@ The repository includes **three dedicated interactive interfaces** to test patie
 ![HealthGuard AI Model Drivers & Risk Score Benchmark](docs/images/streamlit_dashboard_2.png)
 
 ### Available Interfaces:
-1. **Streamlit Clinical Dashboard (`http://localhost:8501`)**: Interactive Python visual dashboard featuring patient input fields, ensemble risk metrics, Logistic Regression symptom drivers, XGBoost gain importances, and dataset persona explorer.
-2. **Interactive CLI Predictor (`python src/predict.py`)**: Interactive terminal runner for instant risk scoring against preset clinical profiles (*Eleanor Vance*, *Arthur Pendelton*, *Sophia Martinez*) or custom vitals.
-3. **Reproducible Jupyter Notebooks (`notebooks/`)**: Complete data science exploratory analysis (`01_exploratory_data_analysis.ipynb`) and 4-stage pipeline evaluation (`02_model_training_and_eval.ipynb`).
+1. **🌐 Live Web Application ([healthguard2008.streamlit.app](https://healthguard2008.streamlit.app/))**: Production cloud-hosted Streamlit app for instant clinical risk scoring and visual analytics in your browser.
+2. **Streamlit Clinical Dashboard (`http://localhost:8501`)**: Local interactive Python visual dashboard featuring patient input fields, ensemble risk metrics, Logistic Regression symptom drivers, XGBoost gain importances, and dataset persona explorer.
+3. **Interactive CLI Predictor (`python src/predict.py`)**: Interactive terminal runner for instant risk scoring against preset clinical profiles (*Eleanor Vance*, *Arthur Pendelton*, *Sophia Martinez*) or custom vitals.
+4. **Reproducible Jupyter Notebooks (`notebooks/`)**: Complete data science exploratory analysis (`01_exploratory_data_analysis.ipynb`) and 4-stage pipeline evaluation (`02_model_training_and_eval.ipynb`).
 
 ---
 
@@ -118,9 +124,15 @@ Below is a detailed guide to the clinical parameters processed by the model and 
 
 ---
 
-## 🚀 How to Run & Test (4 Easy Ways)
+## 🚀 How to Run & Test
 
-### 1. Run Streamlit Clinical Dashboard
+### 🌐 1. Instant Access: Deployed Live Web App
+No local setup or Python installation needed! Access the live deployment directly in your browser:
+👉 **[https://healthguard2008.streamlit.app/](https://healthguard2008.streamlit.app/)**
+
+---
+
+### 2. Run Local Streamlit Clinical Dashboard
 ```bash
 streamlit run app.py
 ```
@@ -132,7 +144,7 @@ streamlit run app.py
 
 ---
 
-### 2. Run Command-Line CLI Predictor
+### 3. Run Command-Line CLI Predictor
 ```bash
 # Interactive CLI mode with preset patient profiles & custom vitals
 python src/predict.py
@@ -141,7 +153,7 @@ python src/predict.py
 
 ---
 
-### 3. Run 4-Algorithm Pipeline Training & Benchmark
+### 4. Run 4-Algorithm Pipeline Training & Benchmark
 ```bash
 # Train complete pipeline, compute metrics, print benchmark table & save model
 python src/train_and_evaluate.py
@@ -150,7 +162,7 @@ python src/train_and_evaluate.py
 
 ---
 
-### 4. Run Automated Test Suite
+### 5. Run Automated Test Suite
 ```bash
 # Run standard unittest runner
 python tests/run_tests.py
